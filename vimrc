@@ -1,0 +1,134 @@
+call pathogen#infect()
+
+runtime macros/matchit.vim
+
+set linebreak"{{{
+set nocompatible
+set history=400
+set ruler
+set number
+set hlsearch
+set incsearch
+set expandtab
+set t_vb=
+set foldmethod=marker
+set tabstop=4
+set shiftwidth=4    
+set nobackup
+set smarttab
+set smartindent
+set autoindent
+set cindent
+set completeopt=longest,menu"}}}
+
+" delete menu bar"{{{
+" transparency
+if has("gui_running")
+    set transparency=10
+endif
+set guioptions-=m
+" delete toolbar
+set guioptions-=T
+" delete right scroller
+set guioptions-=r
+" delete left scroller
+set guioptions-=l"}}}
+"set cursorline
+
+" set guifont=Consolas:h14
+set encoding=utf-8
+" set guifont=Inconsolata\ for\ Powerline:h16
+set guifont=Menlo\ for\ Powerline:h14
+syntax enable
+
+if has("gui_running")
+    set background=dark
+    colorscheme solarized
+endif
+
+"colorscheme elflord
+"colorscheme desert
+
+if has("autocmd")
+  au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
+      \| exe "normal! g'\"" | endif
+endif
+
+set backspace=indent,eol,start
+
+let leader=","
+let mapleader = ","
+
+filetype plugin indent on   " filetype setting
+
+" the following function is used for show the status bar on the buttom
+function! CurrectDir()
+    let curdir = substitute(getcwd(), "", "", "g")
+    return curdir
+endfunction
+
+set statusline=\ [File]\ %F%m%r%h\ %w\ \ [PWD]\ %r%{CurrectDir()}%h\ \ %=[Line]\ %l,%c\ %=\ %P
+
+map <C-N> :!rspec expand("%:p") -cfn -l <C-r>=line('.')<CR>
+
+function! RunRSpec(args)
+    let file = expand("%:p")
+    let cmd = ":!rspec " . file . " -cfn " . a:args
+    execute cmd
+endfunction
+
+function! RunRubyScript()
+    let file = expand("%:p")
+    new | setlocal buftype=nofile bufhidden=hide noswapfile | execute ".!ruby " . file
+endfunction
+
+function! RunPythonScript()
+    let file = expand("%:p")
+    new | setlocal buftype=nofile bufhidden=hide noswapfile | execute ".!python " . file
+endfunction
+
+function! NewPost()
+  let title = input("Post Title: ")
+  let file = expand("%:p")
+  new | setlocal buftype=nofile bufhidden=hide noswapfile | execute ".!python ~/develop/post.py -t \"" . shellescape(title) . "\" -f " . file 
+endfunction
+
+map <F3> :NERDTreeToggle<CR>
+" map <F4> :BuffergatorToggle<CR>
+
+autocmd BufRead *_spec.rb map <F5> :call RunRSpec("-l " . <C-r>=line('.')<CR>)<CR>
+autocmd BufRead *.dot nmap <F6> :w<CR>:!dot -Tpng -o %<.png % && open %<.png<CR><CR>
+autocmd BufRead *.rb map <F7> :w<CR>:call RunRubyScript()<CR>
+autocmd BufRead *.py map <F8> :w<CR>:call RunPythonScript()<CR>
+autocmd BufRead *.md map <F9> :w<CR>:call NewPost()<CR>
+
+let g:miniBufExplorerMoreThanOne=0"{{{
+let g:miniBufExplMapWindowNavVim=1
+let g:miniBufExplMapWindowNavArrows=1
+let g:miniBufExplMapCTabSwitchBufs=1
+let g:miniBufExplModSelTarget=1"}}}
+
+map <F10> :e $HOME/.vimrc<CR>
+map <C-O> :so $HOME/.vimrc<CR>
+
+" " use ,gf to go to file in a vertical split
+nnoremap <silent> ,gf :vertical botright wincmd f<CR>
+
+" switch 1..9 of minibufexpl
+for buffer_no in range(1, 9)
+    execute "nmap <D-" . buffer_no . "> :b" . buffer_no . "<CR>"
+endfor
+
+" swithc 10.20 of minibufexpl
+for buffer_no in range(10, 20)
+    execute "nmap <Leader>" . buffer_no . " :b" . buffer_no . "<CR>"
+endfor
+
+map <C-X> :CtrlPMRU<CR>
+map <C-E> :Ack 
+imap <F2> <C-R>=strftime("%c")<CR>
+nmap <D-c> :let @"=expand("%:p")<CR>
+
+set rtp+=/Library/Python/2.7/site-packages/Powerline-beta-py2.7.egg/powerline/bindings/vim
+set laststatus=2
+set noshowmode
